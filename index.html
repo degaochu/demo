@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Image</title>
+    <script>
+        async function fetchWeatherImage() {
+            // 获取当前位置信息
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    // 成功获取位置信息
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // 调用REST API
+                    fetch('http://127.0.0.1:5000/predict', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ position: [latitude, longitude] })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        console.info('response:', response);
+                        return response.json();
+                    })
+                    .then(data => {
+                        data = JSON.parse(data)
+                        console.info('typeof data: ', (typeof data))
+                        console.info('data.image:', data.image);
+                        console.info('data:', data);
+                        const imageElement = document.getElementById('weatherImage');
+                        imageElement.src = `data:image/jpeg;base64,${data.image}`;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching weather image:', error);
+                    });
+                },
+                (error) => {
+                    // 处理错误情况
+                    console.error('Error fetching position:', error);
+                },
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            );
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchWeatherImage);
+    </script>
+</head>
+<body>
+    <h1>Weather Image</h1>
+    <img id="weatherImage" alt="Weather Image" style="max-width: 100%; height: auto;">
+</body>
+</html>
